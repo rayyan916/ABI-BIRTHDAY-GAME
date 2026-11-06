@@ -298,10 +298,60 @@
 
                 <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 pt-2 border-t-2 border-dashed border-gray-300">
                     <span><i class="fa-solid fa-trophy text-[#E8B949]"></i> 已連線雲端排行榜 & Google Sheet 紀錄</span>
-                    <button id="view-leaderboard-btn" class="underline font-bold text-[#2A4B3C] hover:text-[#D73A31] cursor-pointer">
-                        查看目前生日祝福榜 &raquo;
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button id="open-custom-img-btn" class="underline font-bold text-[#D73A31] hover:text-[#1A1A1A] cursor-pointer">
+                            <i class="fa-solid fa-images"></i> 上傳 AI 生成的 Abigail 圖片
+                        </button>
+                        <button id="view-leaderboard-btn" class="underline font-bold text-[#2A4B3C] hover:text-[#D73A31] cursor-pointer">
+                            查看目前生日祝福榜 &raquo;
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL: UPLOAD CUSTOM AI IMAGES FOR ABIGAIL ================= -->
+    <div id="custom-img-modal" class="hidden fixed inset-0 bg-black/75 z-50 items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="manga-panel w-full max-w-2xl p-4 sm:p-5 bg-[#F6F2E6] relative my-auto">
+            <div class="flex items-center justify-between border-b-2 border-[#1A1A1A] pb-2 mb-3">
+                <h3 class="text-base sm:text-lg font-black text-[#1A1A1A] flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[#D73A31]"></i> 上傳 Abigail 的 AI 漫畫圖片 (PNG / JPG / WEBP)
+                </h3>
+                <button id="close-custom-img-btn" class="bg-[#D73A31] text-white w-7 h-7 rounded-full font-black border-2 border-black cursor-pointer">✕</button>
+            </div>
+            <p class="text-xs text-gray-700 mb-3">
+                你可以把透過真實照片 + Prompt 生成的 5 張《SPY×FAMILY》風格圖片上傳到這裡，遊戲中就會立即換上專屬的 Abigail 圖片！（未上傳的項目會維持預設手繪插畫）
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <label class="bg-white p-2.5 rounded-xl border-2 border-[#1A1A1A] flex flex-col gap-1 cursor-pointer hover:bg-pink-50">
+                    <span class="font-black text-[#2A4B3C]">🎵 1. 舞步一 (星光歡呼跳)</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-pose="dance1" class="custom-pose-input text-[11px]" />
+                </label>
+                <label class="bg-white p-2.5 rounded-xl border-2 border-[#1A1A1A] flex flex-col gap-1 cursor-pointer hover:bg-pink-50">
+                    <span class="font-black text-[#2A4B3C]">🎵 2. 舞步二 (優雅轉圈圈)</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-pose="dance2" class="custom-pose-input text-[11px]" />
+                </label>
+                <label class="bg-white p-2.5 rounded-xl border-2 border-[#1A1A1A] flex flex-col gap-1 cursor-pointer hover:bg-pink-50">
+                    <span class="font-black text-[#2A4B3C]">🎵 3. 舞步三 (動感搖擺舞)</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-pose="dance3" class="custom-pose-input text-[11px]" />
+                </label>
+                <label class="bg-white p-2.5 rounded-xl border-2 border-[#1A1A1A] flex flex-col gap-1 cursor-pointer hover:bg-pink-50">
+                    <span class="font-black text-[#D73A31]">💦 4. 按錯音鍵 (失望/驚訝圖片)</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-pose="miss" class="custom-pose-input text-[11px]" />
+                </label>
+                <label class="bg-white p-2.5 rounded-xl border-2 border-[#1A1A1A] flex flex-col gap-1 cursor-pointer hover:bg-pink-50 sm:col-span-2">
+                    <span class="font-black text-[#E8B949] bg-[#1A1A1A] px-2 py-0.5 rounded w-fit">🎂 5. 遊戲結束 (Abigail 說 Thank You 圖片)</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" data-pose="thankyou" class="custom-pose-input text-[11px]" />
+                </label>
+            </div>
+            <div class="mt-3 flex justify-end gap-2">
+                <button id="reset-custom-img-btn" class="bg-gray-200 hover:bg-gray-300 text-black font-bold px-3 py-1.5 rounded-lg border-2 border-black text-xs cursor-pointer">
+                    還原預設插畫
+                </button>
+                <button id="done-custom-img-btn" class="spy-btn px-5 py-1.5 rounded-lg text-xs cursor-pointer">
+                    完成並套用
+                </button>
             </div>
         </div>
     </div>
@@ -367,18 +417,22 @@
 
             <!-- Right: Stopwatch (3:00) & Score HUD -->
             <div class="h-full flex flex-col justify-between items-end shrink-0 gap-1">
-                <!-- Stopwatch Box -->
-                <div class="bg-[#1A1A1A] text-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#E8B949] text-center w-24 sm:w-32 shadow">
-                    <div class="text-[9px] sm:text-[10px] text-[#E8B949] font-bold tracking-wider uppercase flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-stopwatch"></i> 剩餘秒錶
+                <!-- Stopwatch Box (3 Minutes Countdown Timer) -->
+                <div id="timer-box" class="bg-[#1A1A1A] text-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#E8B949] text-center w-28 sm:w-36 shadow relative overflow-hidden">
+                    <div class="text-[10px] sm:text-xs text-[#E8B949] font-black tracking-wider uppercase flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-stopwatch fa-shake"></i> 3分鐘倒數計時
                     </div>
-                    <div id="hud-timer" class="text-lg sm:text-2xl font-black text-white tracking-tight leading-none mt-0.5">
+                    <div id="hud-timer" class="text-xl sm:text-3xl font-black text-white tracking-wider leading-none mt-0.5 font-mono">
                         03:00
+                    </div>
+                    <!-- Visual Time Remaining Bar -->
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full mt-1 overflow-hidden">
+                        <div id="timer-progress-bar" class="bg-[#69F0AE] h-full w-full transition-all duration-500"></div>
                     </div>
                 </div>
 
                 <!-- Score Box -->
-                <div class="bg-[#FFE066] text-[#1A1A1A] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#1A1A1A] text-center w-24 sm:w-32 shadow">
+                <div class="bg-[#FFE066] text-[#1A1A1A] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#1A1A1A] text-center w-28 sm:w-36 shadow">
                     <div class="text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
                         <i class="fa-solid fa-star text-[#D73A31]"></i> 生日分數
                     </div>
@@ -387,10 +441,13 @@
                     </div>
                 </div>
 
-                <!-- Early Finish / Sound Toggle -->
-                <div class="flex gap-1 w-24 sm:w-32">
+                <!-- Early Finish / Sound Test Button -->
+                <div class="flex gap-1 w-28 sm:w-36">
+                    <button id="sound-test-btn" title="測試或喚醒聲音" class="bg-[#E8B949] hover:bg-[#FFE066] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg px-2 py-1 text-[10px] sm:text-xs font-black cursor-pointer">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
                     <button id="finish-early-btn" title="提前結算成績" class="flex-1 bg-white hover:bg-gray-100 text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg py-1 text-[10px] sm:text-xs font-bold cursor-pointer">
-                        結算
+                        提前結算
                     </button>
                 </div>
             </div>
@@ -536,7 +593,30 @@
         /*************************************************************
          * 1. SPY × FAMILY STYLE FULL-COLOR SVGS FOR 4-YEAR-OLD ABIGAIL
          *************************************************************/
+        // Default built-in AI comic image URLs for Abigail
+        const DEFAULT_ABIGAIL_IMAGES = {
+            dance1: "https://i.postimg.cc/nc3tHn7h/ABI-01-xing-guang-huan-hu-tiao.png",
+            dance2: "https://i.postimg.cc/GhX1cbYh/ABI-02-you-ya-zhuan-quan-quan.png",
+            dance3: "https://i.postimg.cc/4NWTJXt4/ABI-03-dong-gan-yao-bai-wu.png",
+            miss: "https://i.postimg.cc/VLKcYzM8/ABI-04-jing-ya-shi-wang-yan-yi.png",
+            thankyou: "https://i.postimg.cc/8PZV1TWF/ABI-05-Thank-You-dao-xie-tu.png"
+        };
+
+        // Store active AI comic images for Abigail (initialized with the provided URLs)
+        const customAbigailImages = { ...DEFAULT_ABIGAIL_IMAGES };
+
+        // Preload all 5 Abigail images so transitions during piano gameplay are instant
+        Object.values(DEFAULT_ABIGAIL_IMAGES).forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+
         function getAbigailSVG(poseType) {
+            // Display Abigail's AI-generated comic image if available
+            if (customAbigailImages[poseType]) {
+                return `<img src="${customAbigailImages[poseType]}" alt="Abigail ${poseType}" class="w-full h-full object-contain rounded-lg select-none pointer-events-none" onerror="this.onerror=null; this.parentElement.innerHTML='圖片載入中...';" />`;
+            }
+
             // Shared Spy x Family Aesthetic: Pastel pink hair, signature gold-black horn clips, Eden-inspired party dress, bold manga ink lines
             const hairAndHeadBase = `
                 <!-- Soft Drop Shadow -->
@@ -803,37 +883,138 @@
         ];
 
         /*************************************************************
-         * 3. TONE.JS SYNTHESIS AUDIO ENGINE
+         * 3. CROSS-PLATFORM AUDIO ENGINE (iOS / iPadOS / Android / PC)
          *************************************************************/
-        let synth = null;
-        let errorSynth = null;
+        const NOTE_FREQUENCIES = {
+            'C4': 261.63,
+            'C#4': 277.18,
+            'D4': 293.66,
+            'D#4': 311.13,
+            'E4': 329.63,
+            'F4': 349.23,
+            'F#4': 369.99,
+            'G4': 392.00,
+            'G#4': 415.30,
+            'A4': 440.00,
+            'Bb4': 466.16,
+            'B4': 493.88,
+            'C5': 523.25,
+            'C#5': 554.37,
+            'D5': 587.33
+        };
 
-        async function initAudio() {
+        let audioCtx = null;
+        let audioUnlocked = false;
+
+        // Synchronous iOS & iPadOS WebKit Audio Unlocker (Must run directly inside touchstart/pointerdown/click)
+        function initAudio() {
             try {
-                await Tone.start();
-                if (!synth) {
-                    synth = new Tone.PolySynth(Tone.Synth, {
-                        oscillator: { type: "triangle" },
-                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.8 }
-                    }).toDestination();
+                // iOS 17+ AudioSession API: Bypasses the physical Silent/Ring switch on iPhone/iPad
+                if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                    navigator.audioSession.type = 'playback';
                 }
-                if (!errorSynth) {
-                    errorSynth = new Tone.Synth({
-                        oscillator: { type: "sawtooth" },
-                        envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
-                    }).toDestination();
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx && AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+
+                if (audioCtx) {
+                    if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                        audioCtx.resume();
+                    }
+
+                    // Play a 1-sample silent buffer synchronously to force iOS Safari hardware audio unlock
+                    if (!audioUnlocked) {
+                        const silentBuffer = audioCtx.createBuffer(1, 1, 22050);
+                        const source = audioCtx.createBufferSource();
+                        source.buffer = silentBuffer;
+                        source.connect(audioCtx.destination);
+                        if (source.start) {
+                            source.start(0);
+                        } else if (source.noteOn) {
+                            source.noteOn(0);
+                        }
+                        audioUnlocked = true;
+                    }
+                }
+
+                // Also wake Tone.js if available
+                if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') {
+                    Tone.context.resume().catch(() => {});
                 }
             } catch (err) {
-                console.warn("Audio init warning:", err);
+                console.warn("Audio unlock warning:", err);
             }
         }
 
+        // Attach global one-time touch/click unlock listeners for iPhone & iPad
+        ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(evtName => {
+            window.addEventListener(evtName, initAudio, { passive: true });
+        });
+
         function playPianoNote(noteName, isCorrect = true) {
             try {
-                if (isCorrect && synth) {
-                    synth.triggerAttackRelease(noteName, "8n");
-                } else if (!isCorrect && errorSynth) {
-                    errorSynth.triggerAttackRelease("G2", "16n");
+                initAudio();
+                if (!audioCtx) return;
+
+                if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+
+                if (isCorrect) {
+                    const freq = NOTE_FREQUENCIES[noteName] || 440;
+
+                    // Main warm piano oscillator (Triangle wave)
+                    const oscMain = audioCtx.createOscillator();
+                    // Bright harmonic overtone oscillator (Sine wave)
+                    const oscHarmonic = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+
+                    oscMain.type = 'triangle';
+                    oscMain.frequency.setValueAtTime(freq, now);
+
+                    oscHarmonic.type = 'sine';
+                    oscHarmonic.frequency.setValueAtTime(freq * 2, now);
+
+                    const harmonicGain = audioCtx.createGain();
+                    harmonicGain.gain.setValueAtTime(0.18, now);
+
+                    // Crisp piano-like ADSR envelope
+                    gainNode.gain.setValueAtTime(0.001, now);
+                    gainNode.gain.linearRampToValueAtTime(0.55, now + 0.015);
+                    gainNode.gain.exponentialRampToValueAtTime(0.18, now + 0.18);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+                    oscMain.connect(gainNode);
+                    oscHarmonic.connect(harmonicGain);
+                    harmonicGain.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    oscMain.start(now);
+                    oscHarmonic.start(now);
+                    oscMain.stop(now + 0.85);
+                    oscHarmonic.stop(now + 0.85);
+                } else {
+                    // Comedic dull buzz sound on wrong note
+                    const errOsc = audioCtx.createOscillator();
+                    const errGain = audioCtx.createGain();
+
+                    errOsc.type = 'sawtooth';
+                    errOsc.frequency.setValueAtTime(110, now); // Low A2
+                    errOsc.frequency.linearRampToValueAtTime(85, now + 0.22);
+
+                    errGain.gain.setValueAtTime(0.001, now);
+                    errGain.gain.linearRampToValueAtTime(0.35, now + 0.01);
+                    errGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+                    errOsc.connect(errGain);
+                    errGain.connect(audioCtx.destination);
+
+                    errOsc.start(now);
+                    errOsc.stop(now + 0.25);
                 }
             } catch (e) {
                 console.warn("Audio trigger skipped:", e);
@@ -885,13 +1066,20 @@
                     `;
                 }
 
-                // Responsive Touch + Mouse Listener
+                // Responsive Touch + Mouse Listener (Supports iOS Safari touchstart & standard pointerdown)
+                let lastTriggeredTime = 0;
                 const handleTrigger = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const nowMs = Date.now();
+                    if (nowMs - lastTriggeredTime < 60) return; // Prevent double firing between touchstart & pointerdown
+                    lastTriggeredTime = nowMs;
+
+                    initAudio();
                     handleKeyPress(keyObj.note, keyEl);
                 };
 
+                keyEl.addEventListener('touchstart', handleTrigger, { passive: false });
                 keyEl.addEventListener('pointerdown', handleTrigger);
                 pianoContainer.appendChild(keyEl);
             });
@@ -1014,7 +1202,7 @@
         /*************************************************************
          * 5. START & END 3-MINUTE GAME FLOW
          *************************************************************/
-        async function startGameSession() {
+        function startGameSession() {
             const nameInput = document.getElementById('player-name-input').value.trim();
             if (!nameInput) {
                 document.getElementById('name-error-msg').classList.remove('hidden');
@@ -1023,7 +1211,9 @@
             document.getElementById('name-error-msg').classList.add('hidden');
             playerName = nameInput;
 
-            await initAudio();
+            // Synchronously unlock iOS audio right on button click
+            initAudio();
+            playPianoNote('C5', true);
 
             // Reset game variables
             score = 0;
@@ -1039,6 +1229,12 @@
             // Update UI
             document.getElementById('hud-player-name').textContent = playerName;
             document.getElementById('hud-timer').textContent = formatTime(timeLeft);
+            document.getElementById('hud-timer').classList.remove('text-[#FF5252]', 'animate-pulse');
+            const timerBar = document.getElementById('timer-progress-bar');
+            if (timerBar) {
+                timerBar.style.width = '100%';
+                timerBar.className = 'bg-[#69F0AE] h-full w-full transition-all duration-500';
+            }
             document.getElementById('abigail-live-avatar').innerHTML = getAbigailSVG('dance1');
             updateHUD();
             updateTargetKeyUI();
@@ -1055,10 +1251,22 @@
             timerInterval = setInterval(() => {
                 timeLeft--;
                 document.getElementById('hud-timer').textContent = formatTime(timeLeft);
-                if (timeLeft <= 10) {
-                    document.getElementById('hud-timer').classList.add('text-[#FF5252]');
+
+                // Update visual 3-minute timer progress bar
+                const timePct = Math.max(0, (timeLeft / 180) * 100);
+                if (timerBar) {
+                    timerBar.style.width = `${timePct}%`;
+                    if (timeLeft <= 30) {
+                        timerBar.className = 'bg-[#FF5252] h-full transition-all duration-500';
+                    } else if (timeLeft <= 60) {
+                        timerBar.className = 'bg-[#FFE066] h-full transition-all duration-500';
+                    }
+                }
+
+                if (timeLeft <= 30) {
+                    document.getElementById('hud-timer').classList.add('text-[#FF5252]', 'animate-pulse');
                 } else {
-                    document.getElementById('hud-timer').classList.remove('text-[#FF5252]');
+                    document.getElementById('hud-timer').classList.remove('text-[#FF5252]', 'animate-pulse');
                 }
 
                 if (timeLeft <= 0) {
@@ -1327,6 +1535,12 @@
             if (isGameActive) endGameSession();
         });
 
+        document.getElementById('sound-test-btn').addEventListener('click', () => {
+            initAudio();
+            playPianoNote('C5', true);
+            showToast("🔊 音效已啟動！(若 iPhone/iPad 仍無聲，請檢查機身側邊靜音鍵或調高音量)");
+        });
+
         document.getElementById('play-again-btn').addEventListener('click', () => {
             startGameSession();
         });
@@ -1367,6 +1581,48 @@
         });
 
         document.getElementById('copy-gas-code-btn').addEventListener('click', copyAppsScriptTemplate);
+
+        // Custom AI Image Upload Modal Listeners
+        const customImgModal = document.getElementById('custom-img-modal');
+        document.getElementById('open-custom-img-btn').addEventListener('click', () => {
+            customImgModal.classList.remove('hidden');
+            customImgModal.classList.add('flex');
+        });
+
+        const closeCustomModal = () => {
+            customImgModal.classList.add('hidden');
+            customImgModal.classList.remove('flex');
+        };
+        document.getElementById('close-custom-img-btn').addEventListener('click', closeCustomModal);
+        document.getElementById('done-custom-img-btn').addEventListener('click', () => {
+            closeCustomModal();
+            showToast("✨ 已套用 Abigail 的專屬圖片！");
+        });
+
+        document.querySelectorAll('.custom-pose-input').forEach(inputEl => {
+            inputEl.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                const poseKey = e.target.dataset.pose;
+                if (file && poseKey) {
+                    const objUrl = URL.createObjectURL(file);
+                    customAbigailImages[poseKey] = objUrl;
+                    // Refresh visible avatars immediately
+                    document.getElementById('welcome-avatar').innerHTML = getAbigailSVG('dance1');
+                    document.getElementById('abigail-live-avatar').innerHTML = getAbigailSVG('dance1');
+                    document.getElementById('thankyou-avatar').innerHTML = getAbigailSVG('thankyou');
+                    showToast(`🖼️ 已載入「${poseKey}」專屬圖片！`);
+                }
+            });
+        });
+
+        document.getElementById('reset-custom-img-btn').addEventListener('click', () => {
+            Object.keys(DEFAULT_ABIGAIL_IMAGES).forEach(k => customAbigailImages[k] = DEFAULT_ABIGAIL_IMAGES[k]);
+            document.querySelectorAll('.custom-pose-input').forEach(inp => inp.value = '');
+            document.getElementById('welcome-avatar').innerHTML = getAbigailSVG('dance1');
+            document.getElementById('abigail-live-avatar').innerHTML = getAbigailSVG('dance1');
+            document.getElementById('thankyou-avatar').innerHTML = getAbigailSVG('thankyou');
+            showToast("🔄 已還原為預設的 Abigail 專屬 AI 漫畫圖片！");
+        });
 
         // Initialize Firebase Cloud Leaderboard on Load
         window.onload = () => {
