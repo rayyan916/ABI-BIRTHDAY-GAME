@@ -362,10 +362,7 @@
                 <!-- Bottom Mini Progress Bar for Current Song -->
                 <div class="w-full bg-gray-300 h-2 sm:h-2.5 rounded-full overflow-hidden border border-black">
                     <div id="song-progress-bar" class="bg-gradient-to-r from-[#F79AC0] via-[#D73A31] to-[#E8B949] h-full w-0 transition-all duration-200"></div>
-                </div>
-            </div>
-
-            <!-- Right: Stopwatch (3:00) & Score HUD -->
+                    <!-- Right: Stopwatch (3:00) & Score HUD -->
             <div class="h-full flex flex-col justify-between items-end shrink-0 gap-1">
                 <!-- Stopwatch Box -->
                 <div class="bg-[#1A1A1A] text-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#E8B949] text-center w-24 sm:w-32 shadow">
@@ -387,8 +384,11 @@
                     </div>
                 </div>
 
-                <!-- Early Finish / Sound Toggle -->
+                <!-- Early Finish / Sound Test Button -->
                 <div class="flex gap-1 w-24 sm:w-32">
+                    <button id="sound-test-btn" title="測試或喚醒聲音" class="bg-[#E8B949] hover:bg-[#FFE066] text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg px-2 py-1 text-[10px] sm:text-xs font-black cursor-pointer">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
                     <button id="finish-early-btn" title="提前結算成績" class="flex-1 bg-white hover:bg-gray-100 text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg py-1 text-[10px] sm:text-xs font-bold cursor-pointer">
                         結算
                     </button>
@@ -803,37 +803,138 @@
         ];
 
         /*************************************************************
-         * 3. TONE.JS SYNTHESIS AUDIO ENGINE
+         * 3. CROSS-PLATFORM AUDIO ENGINE (iOS / iPadOS / Android / PC)
          *************************************************************/
-        let synth = null;
-        let errorSynth = null;
+        const NOTE_FREQUENCIES = {
+            'C4': 261.63,
+            'C#4': 277.18,
+            'D4': 293.66,
+            'D#4': 311.13,
+            'E4': 329.63,
+            'F4': 349.23,
+            'F#4': 369.99,
+            'G4': 392.00,
+            'G#4': 415.30,
+            'A4': 440.00,
+            'Bb4': 466.16,
+            'B4': 493.88,
+            'C5': 523.25,
+            'C#5': 554.37,
+            'D5': 587.33
+        };
 
-        async function initAudio() {
+        let audioCtx = null;
+        let audioUnlocked = false;
+
+        // Synchronous iOS & iPadOS WebKit Audio Unlocker (Must run directly inside touchstart/pointerdown/click)
+        function initAudio() {
             try {
-                await Tone.start();
-                if (!synth) {
-                    synth = new Tone.PolySynth(Tone.Synth, {
-                        oscillator: { type: "triangle" },
-                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.8 }
-                    }).toDestination();
+                // iOS 17+ AudioSession API: Bypasses the physical Silent/Ring switch on iPhone/iPad
+                if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+                    navigator.audioSession.type = 'playback';
                 }
-                if (!errorSynth) {
-                    errorSynth = new Tone.Synth({
-                        oscillator: { type: "sawtooth" },
-                        envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
-                    }).toDestination();
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!audioCtx && AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+
+                if (audioCtx) {
+                    if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                        audioCtx.resume();
+                    }
+
+                    // Play a 1-sample silent buffer synchronously to force iOS Safari hardware audio unlock
+                    if (!audioUnlocked) {
+                        const silentBuffer = audioCtx.createBuffer(1, 1, 22050);
+                        const source = audioCtx.createBufferSource();
+                        source.buffer = silentBuffer;
+                        source.connect(audioCtx.destination);
+                        if (source.start) {
+                            source.start(0);
+                        } else if (source.noteOn) {
+                            source.noteOn(0);
+                        }
+                        audioUnlocked = true;
+                    }
+                }
+
+                // Also wake Tone.js if available
+                if (typeof Tone !== 'undefined' && Tone.context && Tone.context.state !== 'running') {
+                    Tone.context.resume().catch(() => {});
                 }
             } catch (err) {
-                console.warn("Audio init warning:", err);
+                console.warn("Audio unlock warning:", err);
             }
         }
 
+        // Attach global one-time touch/click unlock listeners for iPhone & iPad
+        ['touchstart', 'touchend', 'pointerdown', 'click'].forEach(evtName => {
+            window.addEventListener(evtName, initAudio, { passive: true });
+        });
+
         function playPianoNote(noteName, isCorrect = true) {
             try {
-                if (isCorrect && synth) {
-                    synth.triggerAttackRelease(noteName, "8n");
-                } else if (!isCorrect && errorSynth) {
-                    errorSynth.triggerAttackRelease("G2", "16n");
+                initAudio();
+                if (!audioCtx) return;
+
+                if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+                    audioCtx.resume();
+                }
+
+                const now = audioCtx.currentTime;
+
+                if (isCorrect) {
+                    const freq = NOTE_FREQUENCIES[noteName] || 440;
+
+                    // Main warm piano oscillator (Triangle wave)
+                    const oscMain = audioCtx.createOscillator();
+                    // Bright harmonic overtone oscillator (Sine wave)
+                    const oscHarmonic = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+
+                    oscMain.type = 'triangle';
+                    oscMain.frequency.setValueAtTime(freq, now);
+
+                    oscHarmonic.type = 'sine';
+                    oscHarmonic.frequency.setValueAtTime(freq * 2, now);
+
+                    const harmonicGain = audioCtx.createGain();
+                    harmonicGain.gain.setValueAtTime(0.18, now);
+
+                    // Crisp piano-like ADSR envelope
+                    gainNode.gain.setValueAtTime(0.001, now);
+                    gainNode.gain.linearRampToValueAtTime(0.55, now + 0.015);
+                    gainNode.gain.exponentialRampToValueAtTime(0.18, now + 0.18);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+                    oscMain.connect(gainNode);
+                    oscHarmonic.connect(harmonicGain);
+                    harmonicGain.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+
+                    oscMain.start(now);
+                    oscHarmonic.start(now);
+                    oscMain.stop(now + 0.85);
+                    oscHarmonic.stop(now + 0.85);
+                } else {
+                    // Comedic dull buzz sound on wrong note
+                    const errOsc = audioCtx.createOscillator();
+                    const errGain = audioCtx.createGain();
+
+                    errOsc.type = 'sawtooth';
+                    errOsc.frequency.setValueAtTime(110, now); // Low A2
+                    errOsc.frequency.linearRampToValueAtTime(85, now + 0.22);
+
+                    errGain.gain.setValueAtTime(0.001, now);
+                    errGain.gain.linearRampToValueAtTime(0.35, now + 0.01);
+                    errGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+                    errOsc.connect(errGain);
+                    errGain.connect(audioCtx.destination);
+
+                    errOsc.start(now);
+                    errOsc.stop(now + 0.25);
                 }
             } catch (e) {
                 console.warn("Audio trigger skipped:", e);
@@ -885,13 +986,20 @@
                     `;
                 }
 
-                // Responsive Touch + Mouse Listener
+                // Responsive Touch + Mouse Listener (Supports iOS Safari touchstart & standard pointerdown)
+                let lastTriggeredTime = 0;
                 const handleTrigger = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    const nowMs = Date.now();
+                    if (nowMs - lastTriggeredTime < 60) return; // Prevent double firing between touchstart & pointerdown
+                    lastTriggeredTime = nowMs;
+
+                    initAudio();
                     handleKeyPress(keyObj.note, keyEl);
                 };
 
+                keyEl.addEventListener('touchstart', handleTrigger, { passive: false });
                 keyEl.addEventListener('pointerdown', handleTrigger);
                 pianoContainer.appendChild(keyEl);
             });
@@ -1014,7 +1122,7 @@
         /*************************************************************
          * 5. START & END 3-MINUTE GAME FLOW
          *************************************************************/
-        async function startGameSession() {
+        function startGameSession() {
             const nameInput = document.getElementById('player-name-input').value.trim();
             if (!nameInput) {
                 document.getElementById('name-error-msg').classList.remove('hidden');
@@ -1023,7 +1131,9 @@
             document.getElementById('name-error-msg').classList.add('hidden');
             playerName = nameInput;
 
-            await initAudio();
+            // Synchronously unlock iOS audio right on button click
+            initAudio();
+            playPianoNote('C5', true);
 
             // Reset game variables
             score = 0;
@@ -1325,6 +1435,12 @@
 
         document.getElementById('finish-early-btn').addEventListener('click', () => {
             if (isGameActive) endGameSession();
+        });
+
+        document.getElementById('sound-test-btn').addEventListener('click', () => {
+            initAudio();
+            playPianoNote('C5', true);
+            showToast("🔊 音效已啟動！(若 iPhone/iPad 仍無聲，請檢查機身側邊靜音鍵或調高音量)");
         });
 
         document.getElementById('play-again-btn').addEventListener('click', () => {
