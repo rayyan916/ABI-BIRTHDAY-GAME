@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Abigail Happy Birthday - 4th Birthday Piano Mission</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Tone.js for Real Piano Sound Synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --spy-green: #2A4B3C;
+            --spy-dark: #1A2821;
+            --spy-cream: #F6F2E6;
+            --spy-pink: #F79AC0;
+            --spy-red: #D73A31;
+            --spy-gold: #E8B949;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Fredoka', 'Noto Sans TC', sans-serif;
+            background-color: var(--spy-dark);
+            background-image: 
+                radial-gradient(rgba(232, 185, 73, 0.12) 2px, transparent 2px),
+                radial-gradient(rgba(247, 154, 192, 0.08) 2px, var(--spy-green) 2px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #1A1A1A;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        /* Spy x Family Manga Panel Styling */
+        .manga-panel {
+            background-color: var(--spy-cream);
+            border: 4px solid #1A1A1A;
+            box-shadow: 6px 6px 0px #1A1A1A;
+            border-radius: 16px;
+        }
+
+        .manga-badge {
+            background-color: var(--spy-red);
+            color: #FFF;
+            border: 3px solid #1A1A1A;
+            box-shadow: 3px 3px 0px #1A1A1A;
+        }
+
+        .spy-btn {
+            background: linear-gradient(180deg, #F79AC0 0%, #E56B9A 100%);
+            border: 3px solid #1A1A1A;
+            box-shadow: 0px 5px 0px #1A1A1A;
+            color: #1A1A1A;
+            font-weight: 900;
+            transition: all 0.1s ease;
+        }
+
+        .spy-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0px 1px 0px #1A1A1A;
+        }
+
+        .spy-btn-gold {
+            background: linear-gradient(180deg, #FFE066 0%, #E8B949 100%);
+            border: 3px solid #1A1A1A;
+            box-shadow: 0px 5px 0px #1A1A1A;
+            color: #1A1A1A;
+            font-weight: 900;
+            transition: all 0.1s ease;
+        }
+
+        .spy-btn-gold:active {
+            transform: translateY(4px);
+            box-shadow: 0px 1px 0px #1A1A1A;
+        }
+
+        /* Piano Key Styling */
+        .piano-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            background: #1A1A1A;
+            padding: 6px 6px 8px 6px;
+            border-radius: 16px;
+            border: 4px solid #1A1A1A;
+            box-shadow: 0 8px 0 #0f1713;
+        }
+
+        .white-key {
+            flex: 1;
+            margin: 0 2px;
+            background: linear-gradient(180deg, #FFFFFF 0%, #F3EFE6 90%, #E0D8C8 100%);
+            border: 3px solid #1A1A1A;
+            border-radius: 0 0 12px 12px;
+            box-shadow: inset 0 -6px 0 rgba(0,0,0,0.12), 0 4px 0 #1A1A1A;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.06s ease, background 0.15s ease;
+            z-index: 1;
+            touch-action: manipulation;
+        }
+
+        .white-key:active, .white-key.pressed {
+            transform: translateY(4px);
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15), 0 0px 0 #1A1A1A;
+        }
+
+        .black-key {
+            position: absolute;
+            top: 6px;
+            width: 6.4%;
+            height: 58%;
+            background: linear-gradient(180deg, #383838 0%, #181818 100%);
+            border: 3px solid #1A1A1A;
+            border-radius: 0 0 8px 8px;
+            box-shadow: inset 0 -5px 0 rgba(255,255,255,0.15), 2px 5px 0 rgba(0,0,0,0.6);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 6px;
+            cursor: pointer;
+            transition: transform 0.06s ease, background 0.15s ease;
+            touch-action: manipulation;
+            transform: translateX(-50%);
+        }
+
+        .black-key:active, .black-key.pressed {
+            transform: translateX(-50%) translateY(4px);
+        }
+
+        /* Target Note Highlighting Animation */
+        @keyframes pulseTarget {
+            0%, 100% {
+                background: linear-gradient(180deg, #FF85B3 0%, #F75C96 55%, #FFE066 100%);
+                box-shadow: 0 0 18px #F79AC0, inset 0 -5px 0 rgba(0,0,0,0.2);
+                transform: translateY(-2px);
+            }
+            50% {
+                background: linear-gradient(180deg, #FFE066 0%, #F79AC0 65%, #FF5C96 100%);
+                box-shadow: 0 0 28px #FFE066, inset 0 -5px 0 rgba(0,0,0,0.2);
+                transform: translateY(1px);
+            }
+        }
+
+        .target-key {
+            animation: pulseTarget 0.75s infinite ease-in-out !important;
+            border-color: #D73A31 !important;
+        }
+
+        .black-key.target-key {
+            animation: pulseTargetBlack 0.75s infinite ease-in-out !important;
+            border-color: #D73A31 !important;
+        }
+
+        @keyframes pulseTargetBlack {
+            0%, 100% {
+                background: linear-gradient(180deg, #FF85B3 0%, #F75C96 55%, #FFE066 100%);
+                box-shadow: 0 0 18px #F79AC0, inset 0 -5px 0 rgba(0,0,0,0.2);
+                transform: translateX(-50%) translateY(-2px);
+            }
+            50% {
+                background: linear-gradient(180deg, #FFE066 0%, #F79AC0 65%, #FF5C96 100%);
+                box-shadow: 0 0 28px #FFE066, inset 0 -5px 0 rgba(0,0,0,0.2);
+                transform: translateX(-50%) translateY(1px);
+            }
+        }
+
+        .target-indicator {
+            display: none;
+        }
+
+        .target-key .target-indicator {
+            display: flex;
+            animation: bounceStar 0.5s infinite alternate;
+        }
+
+        @keyframes bounceStar {
+            from { transform: translateY(0px) scale(1); }
+            to { transform: translateY(-6px) scale(1.18); }
+        }
+
+        .wrong-flash {
+            background: linear-gradient(180deg, #FF5252 0%, #C62828 100%) !important;
+        }
+
+        .correct-flash {
+            background: linear-gradient(180deg, #69F0AE 0%, #00E676 100%) !important;
+        }
+
+        /* Character Bounce Animation */
+        @keyframes danceBounce {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            25% { transform: translateY(-6px) rotate(-3deg) scale(1.03); }
+            75% { transform: translateY(-4px) rotate(3deg) scale(1.03); }
+        }
+
+        .abigail-dance {
+            animation: danceBounce 0.45s ease-in-out infinite;
+        }
+
+        @keyframes shockShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px) rotate(-2deg); }
+            40% { transform: translateX(7px) rotate(2deg); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        .abigail-miss {
+            animation: shockShake 0.4s ease-in-out;
+        }
+
+        /* Portrait Orientation Advisory Banner */
+        @media (orientation: portrait) {
+            #orientation-banner {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between select-none overflow-hidden">
+
+    <!-- Subtle Portrait Mode Hint (Non-blocking so players can still play in any screen size, or rotate for full landscape experience) -->
+    <div id="orientation-banner" class="hidden bg-[#D73A31] text-white text-xs py-1 px-3 justify-between items-center border-b-2 border-black z-50 shrink-0">
+        <span><i class="fa-solid fa-rotate mr-1"></i> 建議將手機或平板轉為<strong>橫向 (Landscape)</strong> 以獲得最佳彈琴體驗！</span>
+        <button onclick="document.getElementById('orientation-banner').style.display='none'" class="bg-black/30 px-2 py-0.5 rounded text-[11px]">關閉</button>
+    </div>
+
+    <!-- ================= SCREEN 1: START / WELCOME SCREEN ================= -->
+    <div id="start-screen" class="w-full h-full flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="manga-panel w-full max-w-4xl p-3 sm:p-6 flex flex-col md:flex-row items-center gap-4 sm:gap-6 relative my-auto">
+            <!-- Top Secret Stamp -->
+            <div class=" absolute -top-3 -left-2 sm:-top-4 sm:-left-3 manga-badge px-3 py-1 rounded-full text-xs sm:text-sm font-black tracking-wider transform -rotate-6 z-10">
+                ★ MISSION: ABIGAIL 4TH BIRTHDAY ★
+            </div>
+
+            <!-- Left Column: Spy x Family Style Abigail Portrait -->
+            <div class="w-36 h-36 sm:w-52 sm:h-52 md:w-64 md:h-64 shrink-0 relative bg-[#F79AC0]/25 rounded-2xl border-4 border-[#1A1A1A] flex items-center justify-center overflow-hidden shadow-inner">
+                <!-- Halftone & Starburst Manga Background -->
+                <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#D73A31 2px, transparent 2px); background-size: 12px 12px;"></div>
+                <div id="welcome-avatar" class="w-full h-full flex items-center justify-center p-2"></div>
+                <div class="absolute bottom-1 right-1 bg-[#E8B949] border-2 border-black px-2 py-0.5 rounded-md text-[11px] font-black">
+                    4 歲生日特派員
+                </div>
+            </div>
+
+            <!-- Right Column: Title, Rules & Name Input -->
+            <div class="flex-1 flex flex-col justify-center w-full text-center md:text-left">
+                <div class="inline-block">
+                    <span class="text-xs sm:text-sm font-bold text-[#D73A31] tracking-widest uppercase">SPY × FAMILY STYLE RHYTHM GAME</span>
+                    <h1 class="text-2xl sm:text-4xl font-black text-[#1A1A1A] leading-tight mt-0.5">
+                        Abigail Happy Birthday! 🎂
+                    </h1>
+                </div>
+
+                <p class="text-xs sm:text-sm text-gray-700 mt-2 bg-white/80 p-2.5 rounded-xl border-2 border-[#1A1A1A] leading-relaxed">
+                    歡迎來到慶祝小女孩 <strong>Abigail 四歲生日</strong> 的音樂派對！在限時 <strong>3 分鐘</strong> 內，跟隨下方<strong>發光變色的鋼琴音鍵</strong>彈奏《Happy Birthday to You》！每彈對一個音，Abigail 就會跳出可愛舞步；按錯的話她會露出經典驚訝表情喔！
+                </p>
+
+                <!-- Name Input & Action Buttons -->
+                <div class="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-user-secret absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-base"></i>
+                        <input id="player-name-input" type="text" maxlength="16" placeholder="請輸入你的名字 (例如: 洛伊德叔叔)" 
+                            class="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-xl border-3 border-[#1A1A1A] bg-white text-sm sm:text-base font-bold focus:outline-none focus:ring-4 focus:ring-[#F79AC0] border-[3px]" />
+                    </div>
+                    <button id="start-mission-btn" class="spy-btn px-6 py-2.5 sm:py-3 rounded-xl text-base sm:text-lg flex items-center justify-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fa-solid fa-music"></i> 開始彈琴任務！
+                    </button>
+                </div>
+                <p id="name-error-msg" class="text-xs text-[#D73A31] font-bold mt-1 hidden">
+                    <i class="fa-solid fa-circle-exclamation"></i> 請先輸入你的名字再開始為 Abigail 慶生喔！
+                </p>
+
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-600 pt-2 border-t-2 border-dashed border-gray-300">
+                    <span><i class="fa-solid fa-trophy text-[#E8B949]"></i> 已連線雲端排行榜 & Google Sheet 紀錄</span>
+                    <button id="view-leaderboard-btn" class="underline font-bold text-[#2A4B3C] hover:text-[#D73A31] cursor-pointer">
+                        查看目前生日祝福榜 &raquo;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 2: MAIN GAMEPLAY SCREEN (LANDSCAPE OPTIMIZED) ================= -->
+    <div id="game-screen" class="hidden w-full h-full flex-col justify-between p-1.5 sm:p-3 gap-1.5 sm:gap-2 overflow-hidden">
+        
+        <!-- TOP SECTION: Abigail Illustration + Lyrics + Timer & Score -->
+        <div class="manga-panel w-full h-[46%] sm:h-[48%] p-2 sm:p-3 flex items-center justify-between gap-2 sm:gap-4 relative overflow-hidden shrink-0">
+            
+            <!-- Left: Abigail Dynamic Manga Frame (3 Dance Poses + Disappointed Pose) -->
+            <div class="h-full aspect-square max-w-[38%] sm:max-w-[32%] bg-gradient-to-b from-[#FFF3B0] to-[#F79AC0]/40 rounded-xl border-3 border-[#1A1A1A] border-[3px] relative flex flex-col items-center justify-center overflow-hidden shrink-0 shadow-md" id="abigail-stage-box">
+                <!-- Manga Speedlines / Sparkles Overlay -->
+                <div id="manga-fx-bg" class="absolute inset-0 opacity-25 pointer-events-none" style="background: repeating-conic-gradient(from 0deg, #FFE066 0deg 10deg, transparent 10deg 20deg);"></div>
+                
+                <!-- Abigail SVG Container -->
+                <div id="abigail-live-avatar" class="w-full h-full flex items-center justify-center p-1 z-10 transition-transform duration-150"></div>
+
+                <!-- Expression Status Badge -->
+                <div id="abigail-pose-label" class="absolute bottom-1 inset-x-1 bg-[#1A1A1A]/85 text-[#FFE066] text-[10px] sm:text-xs font-bold text-center py-0.5 px-1.5 rounded border border-[#FFE066] z-20 truncate">
+                    ★ 準備開始彈奏！
+                </div>
+            </div>
+
+            <!-- Center: Happy Birthday Lyrics & Current Note Guide -->
+            <div class="flex-1 h-full flex flex-col justify-between py-0.5 overflow-hidden">
+                <!-- Player Info & Song Progress -->
+                <div class="flex items-center justify-between gap-1 border-b-2 border-[#1A1A1A]/15 pb-1">
+                    <div class="flex items-center gap-1.5 truncate">
+                        <span class="bg-[#2A4B3C] text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold">
+                            演奏家: <span id="hud-player-name">特務</span>
+                        </span>
+                        <span class="bg-[#F79AC0] text-[#1A1A1A] border border-black text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold hidden sm:inline-block">
+                            完成曲目: <span id="hud-songs-completed">0</span> 首
+                        </span>
+                    </div>
+                    <div id="combo-badge" class="bg-[#E8B949] border-2 border-black px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
+                        COMBO ×<span id="hud-combo">0</span>
+                    </div>
+                </div>
+
+                <!-- Lyrics Box (4 Lines of Happy Birthday to Abigail) -->
+                <div class="my-auto bg-white/90 border-2 border-[#1A1A1A] rounded-xl p-1.5 sm:p-2.5 shadow-inner flex flex-col justify-center">
+                    <div class="text-[10px] sm:text-xs font-black text-[#D73A31] flex items-center justify-between mb-0.5">
+                        <span><i class="fa-solid fa-microphone-lines mr-1"></i>《Happy Birthday to You》歌詞</span>
+                        <span id="next-note-hint" class="bg-[#FFE066] text-black px-2 py-0.2 rounded border border-black text-[10px] sm:text-xs">
+                            請按: Do (C4)
+                        </span>
+                    </div>
+                    <div id="lyrics-container" class="text-xs sm:text-sm md:text-base font-black leading-snug space-y-0.5 text-center">
+                        <div id="lyric-line-0" class="lyric-line transition-all duration-200 rounded px-1">Happy Birthday to you~</div>
+                        <div id="lyric-line-1" class="lyric-line transition-all duration-200 rounded px-1">Happy Birthday to you~</div>
+                        <div id="lyric-line-2" class="lyric-line transition-all duration-200 rounded px-1">Happy Birthday, dear Abigail~</div>
+                        <div id="lyric-line-3" class="lyric-line transition-all duration-200 rounded px-1">Happy Birthday to you!</div>
+                    </div>
+                </div>
+
+                <!-- Bottom Mini Progress Bar for Current Song -->
+                <div class="w-full bg-gray-300 h-2 sm:h-2.5 rounded-full overflow-hidden border border-black">
+                    <div id="song-progress-bar" class="bg-gradient-to-r from-[#F79AC0] via-[#D73A31] to-[#E8B949] h-full w-0 transition-all duration-200"></div>
+                </div>
+            </div>
+
+            <!-- Right: Stopwatch (3:00) & Score HUD -->
+            <div class="h-full flex flex-col justify-between items-end shrink-0 gap-1">
+                <!-- Stopwatch Box -->
+                <div class="bg-[#1A1A1A] text-white px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#E8B949] text-center w-24 sm:w-32 shadow">
+                    <div class="text-[9px] sm:text-[10px] text-[#E8B949] font-bold tracking-wider uppercase flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-stopwatch"></i> 剩餘秒錶
+                    </div>
+                    <div id="hud-timer" class="text-lg sm:text-2xl font-black text-white tracking-tight leading-none mt-0.5">
+                        03:00
+                    </div>
+                </div>
+
+                <!-- Score Box -->
+                <div class="bg-[#FFE066] text-[#1A1A1A] px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-xl border-2 border-[#1A1A1A] text-center w-24 sm:w-32 shadow">
+                    <div class="text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
+                        <i class="fa-solid fa-star text-[#D73A31]"></i> 生日分數
+                    </div>
+                    <div id="hud-score" class="text-lg sm:text-2xl font-black leading-none mt-0.5">
+                        0
+                    </div>
+                </div>
+
+                <!-- Early Finish / Sound Toggle -->
+                <div class="flex gap-1 w-24 sm:w-32">
+                    <button id="finish-early-btn" title="提前結算成績" class="flex-1 bg-white hover:bg-gray-100 text-[#1A1A1A] border-2 border-[#1A1A1A] rounded-lg py-1 text-[10px] sm:text-xs font-bold cursor-pointer">
+                        結算
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM SECTION: Interactive Color-Changing Piano Keyboard -->
+        <div class="w-full h-[52%] sm:h-[50%] shrink-0 relative">
+            <div id="piano-keyboard" class="piano-container">
+                <!-- Keys will be dynamically rendered by JS (C4 to C5 + Bb4 black key) -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= SCREEN 3: END / THANK YOU & LEADERBOARD + GOOGLE SHEET ================= -->
+    <div id="end-screen" class="hidden w-full h-full items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="manga-panel w-full max-w-5xl h-full max-h-[96dvh] p-3 sm:p-5 flex flex-col md:flex-row gap-3 sm:gap-5 overflow-hidden">
+            
+            <!-- Left Side: Abigail Saying "Thank You!" Illustration & Final Stats -->
+            <div class="w-full md:w-5/12 flex flex-col justify-between bg-gradient-to-b from-[#FFF3B0]/60 to-[#F79AC0]/30 rounded-2xl border-3 border-[#1A1A1A] border-[3px] p-3 text-center shrink-0">
+                <div class="flex items-center justify-between">
+                    <span class="manga-badge text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full font-black">
+                        MISSION COMPLETE!
+                    </span>
+                    <span class="text-xs font-black text-[#2A4B3C]">Abigail 4 歲生日快樂</span>
+                </div>
+
+                <!-- Thank You Abigail SVG -->
+                <div id="thankyou-avatar" class="w-36 h-36 sm:w-48 sm:h-48 mx-auto my-1 flex items-center justify-center"></div>
+
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black text-[#1A1A1A]">
+                        「Thank You! 謝謝你為我彈生日歌！」
+                    </h2>
+                    <p class="text-xs text-gray-700 mt-0.5">
+                        玩家 <strong id="final-player-name" class="text-[#D73A31]"></strong> 的演奏表現：
+                    </p>
+                </div>
+
+                <!-- Score Summary Grid -->
+                <div class="grid grid-cols-3 gap-1.5 my-2">
+                    <div class="bg-white p-1.5 rounded-xl border-2 border-[#1A1A1A]">
+                        <div class="text-[10px] text-gray-500 font-bold">總分數</div>
+                        <div id="final-score" class="text-base sm:text-xl font-black text-[#D73A31]">0</div>
+                    </div>
+                    <div class="bg-white p-1.5 rounded-xl border-2 border-[#1A1A1A]">
+                        <div class="text-[10px] text-gray-500 font-bold">準確按鍵</div>
+                        <div id="final-accuracy" class="text-base sm:text-xl font-black text-[#2A4B3C]">0%</div>
+                    </div>
+                    <div class="bg-white p-1.5 rounded-xl border-2 border-[#1A1A1A]">
+                        <div class="text-[10px] text-gray-500 font-bold">挑戰次數</div>
+                        <div id="final-play-count" class="text-base sm:text-xl font-black text-[#E8B949]">1 次</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mt-1">
+                    <button id="play-again-btn" class="spy-btn flex-1 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-rotate-right"></i> 再玩一次
+                    </button>
+                    <button id="new-player-btn" class="spy-btn-gold flex-1 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-user-plus"></i> 換人挑戰
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Cloud Leaderboard (Rankings + Play Counts) & Google Sheet Sync -->
+            <div class="w-full md:w-7/12 flex flex-col justify-between overflow-hidden">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b-2 border-[#1A1A1A]">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black flex items-center gap-1.5">
+                                <i class="fa-solid fa-ranking-star text-[#D73A31]"></i> 壽星祝福排行榜 (含遊玩次數)
+                            </h3>
+                            <p id="sheet-sync-status" class="text-[11px] text-emerald-700 font-bold">
+                                <i class="fa-solid fa-cloud-check"></i> 成績已自動記錄至雲端資料庫及試算表格式
+                            </p>
+                        </div>
+
+                        <!-- Google Sheet Actions -->
+                        <div class="flex gap-1.5">
+                            <button id="export-csv-btn" class="bg-[#1D6F42] hover:bg-[#155732] text-white text-[11px] sm:text-xs font-bold px-2.5 py-1.5 rounded-lg border-2 border-black flex items-center gap-1 cursor-pointer shadow-sm">
+                                <i class="fa-solid fa-file-csv"></i> 匯出 Google Sheet (.csv)
+                            </button>
+                            <button id="config-sheet-btn" class="bg-white hover:bg-gray-100 text-[#1A1A1A] text-[11px] sm:text-xs font-bold px-2.5 py-1.5 rounded-lg border-2 border-black flex items-center gap-1 cursor-pointer shadow-sm">
+                                <i class="fa-solid fa-link"></i> 連結 Google Sheet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Table Container -->
+                <div class="flex-1 overflow-y-auto my-2 bg-white rounded-xl border-3 border-[#1A1A1A] border-[3px]">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead class="bg-[#2A4B3C] text-white sticky top-0 z-10">
+                            <tr>
+                                <th class="py-2 px-2.5 font-black">排名</th>
+                                <th class="py-2 px-2.5 font-black">玩家名字</th>
+                                <th class="py-2 px-2.5 font-black text-right">最高分數</th>
+                                <th class="py-2 px-2.5 font-black text-center">遊玩次數</th>
+                                <th class="py-2 px-2.5 font-black text-right hidden sm:table-cell">完成曲數</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-tbody" class="divide-y divide-gray-200 font-bold">
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-gray-500">正在載入排行榜資料...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Google Sheet Webhook Configuration Panel (Collapsible) -->
+                <div id="sheet-webhook-panel" class="hidden bg-[#FFF3B0] border-2 border-[#1A1A1A] rounded-xl p-2.5 text-xs mb-1">
+                    <div class="font-black text-[#1A1A1A] mb-1 flex justify-between items-center">
+                        <span><i class="fa-solid fa-table text-[#1D6F42]"></i> 自動同步至你的 Google Sheet 設定 (Google Apps Script URL)</span>
+                        <button id="close-webhook-btn" class="text-gray-600 hover:text-black font-black">✕</button>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <input id="sheet-webhook-input" type="url" placeholder="貼上 https://script.google.com/macros/s/.../exec" 
+                            class="flex-1 px-2.5 py-1 rounded border-2 border-black bg-white text-xs" />
+                        <button id="save-webhook-btn" class="bg-[#1D6F42] text-white px-3 py-1 rounded border-2 border-black font-bold cursor-pointer">
+                            儲存並傳送
+                        </button>
+                        <button id="copy-gas-code-btn" class="bg-white text-black px-2.5 py-1 rounded border-2 border-black font-bold cursor-pointer">
+                            複製 Apps Script 程式碼
+                        </button>
+                    </div>
+                    <p id="webhook-feedback" class="text-[11px] text-gray-700 mt-1">
+                        提示：除了一鍵下載 CSV 匯入 Google Sheet 外，也可貼上 Google Apps Script 網址讓每位玩家結束時自動寫入雲端試算表！
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toast-msg" class="fixed top-4 right-4 bg-[#1A1A1A] text-[#FFE066] border-2 border-[#FFE066] px-4 py-2 rounded-xl font-bold text-xs sm:text-sm shadow-lg hidden z-50"></div>
+
+    <!-- ================= FIREBASE & GAME LOGIC SCRIPT ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        /*************************************************************
+         * 1. SPY × FAMILY STYLE FULL-COLOR SVGS FOR 4-YEAR-OLD ABIGAIL
+         *************************************************************/
+        function getAbigailSVG(poseType) {
+            // Shared Spy x Family Aesthetic: Pastel pink hair, signature gold-black horn clips, Eden-inspired party dress, bold manga ink lines
+            const hairAndHeadBase = `
+                <!-- Soft Drop Shadow -->
+                <ellipse cx="100" cy="186" rx="46" ry="8" fill="rgba(0,0,0,0.18)"/>
+                <!-- Back Hair -->
+                <path d="M52,85 C42,115 48,138 62,142 C75,146 125,146 138,142 C152,138 158,115 148,85 Z" fill="#F79AC0" stroke="#1A1A1A" stroke-width="4" stroke-linejoin="round"/>
+                <!-- Cute 4th Birthday Crown Hat in Center -->
+                <polygon points="85,32 93,14 100,25 107,14 115,32" fill="#FFE066" stroke="#1A1A1A" stroke-width="3.5" stroke-linejoin="round"/>
+                <circle cx="93" cy="12" r="3" fill="#D73A31"/>
+                <circle cx="107" cy="12" r="3" fill="#D73A31"/>
+                <text x="100" y="30" font-size="10" font-weight="900" text-anchor="middle" fill="#D73A31">4</text>
+                <!-- Iconic Spy x Family Black & Gold Hair Cones/Buns -->
+                <g transform="translate(46, 38) rotate(-25)">
+                    <polygon points="0,25 14,0 28,25" fill="#222222" stroke="#1A1A1A" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M5,17 L23,17" stroke="#E8B949" stroke-width="3.5"/>
+                    <path d="M9,9 L19,9" stroke="#E8B949" stroke-width="3"/>
+                </g>
+                <g transform="translate(126, 25) rotate(25)">
+                    <polygon points="0,25 14,0 28,25" fill="#222222" stroke="#1A1A1A" stroke-width="3.5" stroke-linejoin="round"/>
+                    <path d="M5,17 L23,17" stroke="#E8B949" stroke-width="3.5"/>
+                    <path d="M9,9 L19,9" stroke="#E8B949" stroke-width="3"/>
+                </g>
+            `;
+
+            const faceBase = `
+                <!-- Face Contour -->
+                <path d="M62,74 C60,108 74,126 100,126 C126,126 140,108 138,74 C136,50 64,50 62,74 Z" fill="#FFE6D5" stroke="#1A1A1A" stroke-width="4"/>
+                <!-- Front Bangs (Pink with highlight) -->
+                <path d="M56,78 C58,44 82,34 100,34 C118,34 142,44 144,78 C134,64 126,76 118,62 C110,76 98,74 92,60 C84,74 74,76 68,63 C62,73 58,78 56,78 Z" fill="#F79AC0" stroke="#1A1A1A" stroke-width="4" stroke-linejoin="round"/>
+                <!-- Hair Highlight -->
+                <path d="M74,50 Q100,43 126,50" fill="none" stroke="#FFD1E6" stroke-width="4" stroke-linecap="round"/>
+            `;
+
+            if (poseType === 'dance1') {
+                // Dance Step 1: Starlight Peace Pose ("Waku Waku!" Joyful Step)
+                return `
+                <svg viewBox="0 0 200 200" class="w-full h-full">
+                    <!-- Sparkles -->
+                    <polygon points="28,45 33,55 43,58 33,62 28,72 23,62 13,58 23,55" fill="#FFE066" stroke="#1A1A1A" stroke-width="2"/>
+                    <polygon points="170,35 174,43 182,46 174,49 170,57 166,49 158,46 166,43" fill="#F79AC0" stroke="#1A1A1A" stroke-width="2"/>
+                    ${hairAndHeadBase}
+                    <!-- Body: Eden Black & Gold Party Dress Dancing Left -->
+                    <path d="M78,125 L64,172 L132,172 L120,125 Z" fill="#1F2421" stroke="#1A1A1A" stroke-width="4" stroke-linejoin="round"/>
+                    <!-- Gold Trim & Red Ribbon -->
+                    <path d="M67,164 L129,164" stroke="#E8B949" stroke-width="4"/>
+                    <polygon points="100,132 90,126 90,138" fill="#D73A31" stroke="#1A1A1A" stroke-width="2.5"/>
+                    <polygon points="100,132 110,126 110,138" fill="#D73A31" stroke="#1A1A1A" stroke-width="2.5"/>
+                    <circle cx="100" cy="132" r="4" fill="#FFE066" stroke="#1A1A1A" stroke-width="2"/>
+                    <!-- Arms Up Cheerfully -->
+                    <path d="M76,130 Q45,112 42,92" fill="none" stroke="#FFE6D5" stroke-width="10" stroke-linecap="round"/>
+                    <path d="M76,130 Q45,112 42,92" fill="none" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M122,130 Q152,115 158,95" fill="none" stroke="#FFE6D5" stroke-width="10" stroke-linecap="round"/>
+                    <path d="M122,130 Q152,115 158,95" fill="none" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+                    <!-- Cute Little Legs -->
+                    <path d="M84,172 L78,186" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+                    <path d="M84,172 L78,186" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M114,172 L124,182" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+                    <path d="M114,172 L124,182" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+                    ${faceBase}
+                    <!-- Big Sparkling Emerald Eyes -->
+                    <ellipse cx="82" cy="91" rx="9" ry="11" fill="#1A1A1A"/>
+                    <ellipse cx="82" cy="92" rx="7" ry="8" fill="#2BB673"/>
+                    <circle cx="79" cy="87" r="3.5" fill="#FFFFFF"/>
+                    <circle cx="85" cy="95" r="2" fill="#FFFFFF"/>
+                    <ellipse cx="118" cy="91" rx="9" ry="11" fill="#1A1A1A"/>
+                    <ellipse cx="118" cy="92" rx="7" ry="8" fill="#2BB673"/>
+                    <circle cx="115" cy="87" r="3.5" fill="#FFFFFF"/>
+                    <circle cx="121" cy="95" r="2" fill="#FFFFFF"/>
+                    <!-- Blushing Cheeks & Big Happy Smile -->
+                    <ellipse cx="69" cy="102" rx="6" ry="3.5" fill="#FF85A2"/>
+                    <ellipse cx="131" cy="102" rx="6" ry="3.5" fill="#FF85A2"/>
+                    <path d="M91,103 Q100,117 109,103 Z" fill="#D73A31" stroke="#1A1A1A" stroke-width="3"/>
+                </svg>`;
+            }
+
+            if (poseType === 'dance2') {
+                // Dance Step 2: Twirl & Musical Hop ("Heh!" Confident Groove)
+                return `
+                <svg viewBox="0 0 200 200" class="w-full h-full">
+                    <text x="26" y="65" font-size="24" font-weight="900" fill="#D73A31" stroke="#1A1A1A" stroke-width="1">♪</text>
+                    <text x="162" y="55" font-size="26" font-weight="900" fill="#FFE066" stroke="#1A1A1A" stroke-width="1.5">♫</text>
+                    <g transform="rotate(5 100 110)">
+                        ${hairAndHeadBase}
+                        <!-- Flared Twirling Skirt -->
+                        <path d="M78,125 C60,145 52,168 56,172 L144,172 C148,168 140,145 122,125 Z" fill="#1F2421" stroke="#1A1A1A" stroke-width="4"/>
+                        <path d="M60,164 Q100,172 140,164" fill="none" stroke="#E8B949" stroke-width="4"/>
+                        <circle cx="100" cy="133" r="5" fill="#D73A31" stroke="#1A1A1A" stroke-width="2.5"/>
+                        <!-- Dancing Arms -->
+                        <path d="M75,132 Q48,138 38,122" fill="none" stroke="#FFE6D5" stroke-width="9" stroke-linecap="round"/>
+                        <path d="M75,132 Q48,138 38,122" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M125,132 Q154,118 162,102" fill="none" stroke="#FFE6D5" stroke-width="9" stroke-linecap="round"/>
+                        <path d="M125,132 Q154,118 162,102" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+                        <!-- Jumping Legs -->
+                        <path d="M85,172 L74,185" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M115,172 L128,180" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        ${faceBase}
+                        <!-- Joyful Wink & Star Eye -->
+                        <path d="M73,91 Q82,82 91,91" fill="none" stroke="#1A1A1A" stroke-width="4" stroke-linecap="round"/>
+                        <ellipse cx="118" cy="91" rx="9" ry="11" fill="#1A1A1A"/>
+                        <ellipse cx="118" cy="92" rx="7" ry="8" fill="#2BB673"/>
+                        <polygon points="118,84 120,89 125,91 120,93 118,98 116,93 111,91 116,89" fill="#FFE066"/>
+                        <ellipse cx="69" cy="102" rx="6" ry="3.5" fill="#FF85A2"/>
+                        <ellipse cx="131" cy="102" rx="6" ry="3.5" fill="#FF85A2"/>
+                        <!-- Happy Cat-like Smile (:3) -->
+                        <path d="M90,105 Q95,112 100,106 Q105,112 110,105" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+                    </g>
+                </svg>`;
+            }
+
+            if (poseType === 'dance3') {
+                // Dance Step 3: Superstar Boogie with Chimera/Party Vibe
+                return `
+                <svg viewBox="0 0 200 200" class="w-full h-full">
+                    <circle cx="32" cy="80" r="6" fill="#F79AC0" stroke="#1A1A1A" stroke-width="2"/>
+                    <circle cx="168" cy="70" r="8" fill="#FFE066" stroke="#1A1A1A" stroke-width="2"/>
+                    <g transform="rotate(-5 100 110)">
+                        ${hairAndHeadBase}
+                        <path d="M76,125 L62,172 L138,172 L124,125 Z" fill="#1F2421" stroke="#1A1A1A" stroke-width="4"/>
+                        <path d="M65,163 L135,163" stroke="#E8B949" stroke-width="4"/>
+                        <!-- Hands on Cheeks / Superstar Pose -->
+                        <path d="M75,134 Q54,116 66,104" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M125,134 Q146,116 134,104" fill="none" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M84,172 L84,186" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M116,172 L125,184" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                        ${faceBase}
+                        <!-- Happy Closed Arc Eyes (^ ^) -->
+                        <path d="M72,92 Q82,80 92,92" fill="none" stroke="#1A1A1A" stroke-width="4.5" stroke-linecap="round"/>
+                        <path d="M108,92 Q118,80 128,92" fill="none" stroke="#1A1A1A" stroke-width="4.5" stroke-linecap="round"/>
+                        <ellipse cx="68" cy="102" rx="7" ry="4" fill="#FF85A2"/>
+                        <ellipse cx="132" cy="102" rx="7" ry="4" fill="#FF85A2"/>
+                        <!-- Singing Open Mouth -->
+                        <ellipse cx="100" cy="108" rx="9" ry="7" fill="#D73A31" stroke="#1A1A1A" stroke-width="3"/>
+                    </g>
+                </svg>`;
+            }
+
+            if (poseType === 'miss') {
+                // Disappointed / Shocked Anya-style Meme Face ("Gaan! 彈錯音了！")
+                return `
+                <svg viewBox="0 0 200 200" class="w-full h-full">
+                    <!-- Manga Gloom Vertical Lines -->
+                    <line x1="25" y1="20" x2="25" y2="65" stroke="#3B4990" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="35" y1="25" x2="35" y2="75" stroke="#3B4990" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="165" y1="20" x2="165" y2="70" stroke="#3B4990" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="175" y1="25" x2="175" y2="60" stroke="#3B4990" stroke-width="3" stroke-linecap="round"/>
+                    ${hairAndHeadBase}
+                    <!-- Slumped Dress -->
+                    <path d="M78,125 L68,172 L132,172 L122,125 Z" fill="#1F2421" stroke="#1A1A1A" stroke-width="4"/>
+                    <path d="M70,164 L130,164" stroke="#E8B949" stroke-width="4"/>
+                    <!-- Drooping Arms -->
+                    <path d="M76,130 L56,154" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M124,130 L144,154" stroke="#1A1A1A" stroke-width="5" stroke-linecap="round"/>
+                    ${faceBase}
+                    <!-- Blue Manga Shock Shade on Forehead -->
+                    <path d="M66,72 Q100,82 134,72" fill="none" stroke="#5C6BC0" stroke-width="6" opacity="0.45"/>
+                    <!-- Blank Shocked White Eyes with tiny pupils -->
+                    <ellipse cx="82" cy="92" rx="10" ry="8" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="3.5"/>
+                    <circle cx="82" cy="92" r="2.5" fill="#1A1A1A"/>
+                    <ellipse cx="118" cy="92" rx="10" ry="8" fill="#FFFFFF" stroke="#1A1A1A" stroke-width="3.5"/>
+                    <circle cx="118" cy="92" r="2.5" fill="#1A1A1A"/>
+                    <!-- Sweat Drop -->
+                    <path d="M144,82 C140,92 148,96 148,90 Z" fill="#4FC3F7" stroke="#1A1A1A" stroke-width="2"/>
+                    <!-- Wavy Disappointed Mouth -->
+                    <path d="M88,110 Q94,104 100,110 Q106,116 112,108" fill="none" stroke="#1A1A1A" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>`;
+            }
+
+            if (poseType === 'thankyou') {
+                // Abigail Holding Birthday Bouquet/Cake Saying "Thank You!"
+                return `
+                <svg viewBox="0 0 200 200" class="w-full h-full">
+                    <!-- Floating Hearts & Stars -->
+                    <path d="M35,52 C35,45 25,45 25,52 C25,58 35,64 35,64 C35,64 45,58 45,52 C45,45 35,45 35,52 Z" fill="#D73A31" stroke="#1A1A1A" stroke-width="2"/>
+                    <path d="M165,52 C165,45 155,45 155,52 C155,58 165,64 165,64 C165,64 175,58 175,52 C175,45 165,45 165,52 Z" fill="#F79AC0" stroke="#1A1A1A" stroke-width="2"/>
+                    ${hairAndHeadBase}
+                    <path d="M76,125 L64,174 L136,174 L124,125 Z" fill="#1F2421" stroke="#1A1A1A" stroke-width="4"/>
+                    <path d="M66,165 L134,165" stroke="#E8B949" stroke-width="4"/>
+                    ${faceBase}
+                    <!-- Big Sparkling Grateful Eyes -->
+                    <ellipse cx="82" cy="91" rx="9" ry="11" fill="#1A1A1A"/>
+                    <ellipse cx="82" cy="92" rx="7" ry="8" fill="#2BB673"/>
+                    <circle cx="79" cy="87" r="4" fill="#FFFFFF"/>
+                    <ellipse cx="118" cy="91" rx="9" ry="11" fill="#1A1A1A"/>
+                    <ellipse cx="118" cy="92" rx="7" ry="8" fill="#2BB673"/>
+                    <circle cx="115" cy="87" r="4" fill="#FFFFFF"/>
+                    <ellipse cx="69" cy="102" rx="7" ry="4" fill="#FF85A2"/>
+                    <ellipse cx="131" cy="102" rx="7" ry="4" fill="#FF85A2"/>
+                    <path d="M90,104 Q100,118 110,104 Z" fill="#D73A31" stroke="#1A1A1A" stroke-width="3"/>
+                    <!-- Thank You Banner / Cake in Front -->
+                    <rect x="52" y="136" width="96" height="32" rx="8" fill="#FFE066" stroke="#1A1A1A" stroke-width="3.5"/>
+                    <text x="100" y="157" font-size="14" font-weight="900" text-anchor="middle" fill="#1A1A1A">THANK YOU! ♥</text>
+                </svg>`;
+            }
+        }
+
+        // Render initial SVGs
+        document.getElementById('welcome-avatar').innerHTML = getAbigailSVG('dance1');
+        document.getElementById('abigail-live-avatar').innerHTML = getAbigailSVG('dance1');
+        document.getElementById('thankyou-avatar').innerHTML = getAbigailSVG('thankyou');
+
+        /*************************************************************
+         * 2. HAPPY BIRTHDAY TO ABIGAIL - MELODY & PIANO KEYS DATA
+         *************************************************************/
+        // Authentic Piano Layout (9 White Keys: C4 to D5 + All 6 Corresponding Black Keys in 2-3-1 standard grouping)
+        const PIANO_KEYS = [
+            // 9 White Keys (Each takes 1/9 = 11.11% width)
+            { note: 'C4', solfege: 'Do', label: '1', type: 'white' },
+            { note: 'D4', solfege: 'Re', label: '2', type: 'white' },
+            { note: 'E4', solfege: 'Mi', label: '3', type: 'white' },
+            { note: 'F4', solfege: 'Fa', label: '4', type: 'white' },
+            { note: 'G4', solfege: 'Sol', label: '5', type: 'white' },
+            { note: 'A4', solfege: 'La', label: '6', type: 'white' },
+            { note: 'B4', solfege: 'Si', label: '7', type: 'white' },
+            { note: 'C5', solfege: 'Do⁺', label: '1̇', type: 'white' },
+            { note: 'D5', solfege: 'Re⁺', label: '2̇', type: 'white' },
+
+            // Group of 2 Black Keys (between C4-D4 and D4-E4)
+            { note: 'C#4', solfege: 'Do♯', label: '♯1', type: 'black', leftPercent: '11.11%' },
+            { note: 'D#4', solfege: 'Re♯', label: '♯2', type: 'black', leftPercent: '22.22%' },
+
+            // Group of 3 Black Keys (between F4-G4, G4-A4, and A4-B4)
+            { note: 'F#4', solfege: 'Fa♯', label: '♯4', type: 'black', leftPercent: '44.44%' },
+            { note: 'G#4', solfege: 'Sol♯', label: '♯5', type: 'black', leftPercent: '55.55%' },
+            { note: 'Bb4', solfege: 'Si♭', label: '♭7', type: 'black', leftPercent: '66.67%' },
+
+            // Upper Octave Black Key (between C5-D5)
+            { note: 'C#5', solfege: 'Do♯⁺', label: '♯1̇', type: 'black', leftPercent: '88.89%' }
+        ];
+
+        // Exact 25-note melody of "Happy Birthday to You" (Key of F Major starting on C4)
+        const HAPPY_BIRTHDAY_SONG = [
+            // Line 0: Happy Birthday to you~
+            { note: 'C4', word: 'Hap-', lineIndex: 0 },
+            { note: 'C4', word: 'py', lineIndex: 0 },
+            { note: 'D4', word: 'Birth-', lineIndex: 0 },
+            { note: 'C4', word: 'day', lineIndex: 0 },
+            { note: 'F4', word: 'to', lineIndex: 0 },
+            { note: 'E4', word: 'you~', lineIndex: 0 },
+
+            // Line 1: Happy Birthday to you~
+            { note: 'C4', word: 'Hap-', lineIndex: 1 },
+            { note: 'C4', word: 'py', lineIndex: 1 },
+            { note: 'D4', word: 'Birth-', lineIndex: 1 },
+            { note: 'C4', word: 'day', lineIndex: 1 },
+            { note: 'G4', word: 'to', lineIndex: 1 },
+            { note: 'F4', word: 'you~', lineIndex: 1 },
+
+            // Line 2: Happy Birthday, dear Abigail~
+            { note: 'C4', word: 'Hap-', lineIndex: 2 },
+            { note: 'C4', word: 'py', lineIndex: 2 },
+            { note: 'C5', word: 'Birth-', lineIndex: 2 },
+            { note: 'A4', word: 'day,', lineIndex: 2 },
+            { note: 'F4', word: 'dear', lineIndex: 2 },
+            { note: 'E4', word: 'A-bi-', lineIndex: 2 },
+            { note: 'D4', word: 'gail~', lineIndex: 2 },
+
+            // Line 3: Happy Birthday to you!
+            { note: 'Bb4', word: 'Hap-', lineIndex: 3 },
+            { note: 'Bb4', word: 'py', lineIndex: 3 },
+            { note: 'A4', word: 'Birth-', lineIndex: 3 },
+            { note: 'F4', word: 'day', lineIndex: 3 },
+            { note: 'G4', word: 'to', lineIndex: 3 },
+            { note: 'F4', word: 'you!', lineIndex: 3 }
+        ];
+
+        /*************************************************************
+         * 3. TONE.JS SYNTHESIS AUDIO ENGINE
+         *************************************************************/
+        let synth = null;
+        let errorSynth = null;
+
+        async function initAudio() {
+            try {
+                await Tone.start();
+                if (!synth) {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.8 }
+                    }).toDestination();
+                }
+                if (!errorSynth) {
+                    errorSynth = new Tone.Synth({
+                        oscillator: { type: "sawtooth" },
+                        envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
+                    }).toDestination();
+                }
+            } catch (err) {
+                console.warn("Audio init warning:", err);
+            }
+        }
+
+        function playPianoNote(noteName, isCorrect = true) {
+            try {
+                if (isCorrect && synth) {
+                    synth.triggerAttackRelease(noteName, "8n");
+                } else if (!isCorrect && errorSynth) {
+                    errorSynth.triggerAttackRelease("G2", "16n");
+                }
+            } catch (e) {
+                console.warn("Audio trigger skipped:", e);
+            }
+        }
+
+        /*************************************************************
+         * 4. GAME STATE & PIANO RENDERING
+         *************************************************************/
+        let playerName = "";
+        let score = 0;
+        let combo = 0;
+        let stepIndex = 0;
+        let songsCompleted = 0;
+        let dancePoseCounter = 0; // Cycles 0 -> 1 -> 2 for the 3 dance images
+        let totalPresses = 0;
+        let correctPresses = 0;
+        let timeLeft = 180; // 3 minutes = 180 seconds
+        let timerInterval = null;
+        let isGameActive = false;
+
+        // Build Piano Keyboard DOM
+        const pianoContainer = document.getElementById('piano-keyboard');
+        function buildPianoKeyboard() {
+            pianoContainer.innerHTML = '';
+            PIANO_KEYS.forEach((keyObj) => {
+                const keyEl = document.createElement('div');
+                keyEl.dataset.note = keyObj.note;
+                keyEl.id = `key-${keyObj.note}`;
+
+                if (keyObj.type === 'white') {
+                    keyEl.className = 'white-key';
+                    keyEl.innerHTML = `
+                        <div class="target-indicator mb-auto mt-2 bg-[#D73A31] text-white text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border-2 border-black shadow">
+                            ★ 按我!
+                        </div>
+                        <div class="text-xs sm:text-base font-black text-[#1A1A1A]">${keyObj.solfege}</div>
+                        <div class="text-[10px] sm:text-xs font-bold text-gray-500 bg-gray-200/80 px-2 py-0.5 rounded-md border border-gray-400 mt-0.5">${keyObj.note}</div>
+                    `;
+                } else {
+                    keyEl.className = 'black-key';
+                    keyEl.style.left = keyObj.leftPercent;
+                    keyEl.innerHTML = `
+                        <div class="target-indicator mb-auto mt-1 bg-[#FFE066] text-black text-[9px] sm:text-[11px] font-black px-1.5 py-0.5 rounded-full border border-black shadow">
+                            ★
+                        </div>
+                        <div class="text-[10px] sm:text-xs font-black text-[#FFE066]">${keyObj.solfege}</div>
+                        <div class="text-[9px] text-gray-300">${keyObj.note}</div>
+                    `;
+                }
+
+                // Responsive Touch + Mouse Listener
+                const handleTrigger = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleKeyPress(keyObj.note, keyEl);
+                };
+
+                keyEl.addEventListener('pointerdown', handleTrigger);
+                pianoContainer.appendChild(keyEl);
+            });
+        }
+        buildPianoKeyboard();
+
+        // Highlight Current Target Key & Active Lyric Line
+        function updateTargetKeyUI() {
+            // Clear all target classes
+            document.querySelectorAll('.white-key, .black-key').forEach(el => {
+                el.classList.remove('target-key');
+            });
+
+            const currentStep = HAPPY_BIRTHDAY_SONG[stepIndex];
+            const targetKeyEl = document.getElementById(`key-${currentStep.note}`);
+            if (targetKeyEl) {
+                targetKeyEl.classList.add('target-key');
+            }
+
+            // Find key metadata for hint badge
+            const keyMeta = PIANO_KEYS.find(k => k.note === currentStep.note);
+            document.getElementById('next-note-hint').textContent = `請按: ${keyMeta ? keyMeta.solfege : ''} (${currentStep.note}) 「${currentStep.word}」`;
+
+            // Highlight active lyric line
+            for (let i = 0; i < 4; i++) {
+                const lineEl = document.getElementById(`lyric-line-${i}`);
+                if (i === currentStep.lineIndex) {
+                    lineEl.className = 'lyric-line transition-all duration-200 rounded px-2 py-0.5 bg-[#FFE066] text-[#D73A31] border border-black scale-[1.02] shadow-sm';
+                } else {
+                    lineEl.className = 'lyric-line transition-all duration-200 rounded px-1 text-gray-500 opacity-75';
+                }
+            }
+
+            // Update progress bar
+            const pct = Math.round((stepIndex / HAPPY_BIRTHDAY_SONG.length) * 100);
+            document.getElementById('song-progress-bar').style.width = `${pct}%`;
+        }
+
+        // Handle Player Pressing a Piano Key
+        function handleKeyPress(pressedNote, keyEl) {
+            if (!isGameActive) return;
+
+            totalPresses++;
+            const expectedStep = HAPPY_BIRTHDAY_SONG[stepIndex];
+            const liveAvatar = document.getElementById('abigail-live-avatar');
+            const poseLabel = document.getElementById('abigail-pose-label');
+
+            if (pressedNote === expectedStep.note) {
+                // CORRECT NOTE!
+                correctPresses++;
+                combo++;
+                const comboBonus = Math.min(combo * 2, 30);
+                score += 10 + comboBonus;
+
+                playPianoNote(pressedNote, true);
+
+                // Flash key green briefly
+                keyEl.classList.add('correct-flash');
+                setTimeout(() => keyEl.classList.remove('correct-flash'), 160);
+
+                // Cycle through the 3 dancing illustrations of Abigail
+                const dancePoses = ['dance1', 'dance2', 'dance3'];
+                const danceNames = [
+                    '★ Abigail 舞步 1：星光歡呼跳！',
+                    '★ Abigail 舞步 2：優雅轉圈圈！',
+                    '★ Abigail 舞步 3：動感搖擺舞！'
+                ];
+                const currentDancePose = dancePoses[dancePoseCounter % 3];
+                liveAvatar.innerHTML = getAbigailSVG(currentDancePose);
+                liveAvatar.classList.remove('abigail-miss');
+                liveAvatar.classList.add('abigail-dance');
+                poseLabel.textContent = danceNames[dancePoseCounter % 3];
+                poseLabel.className = "absolute bottom-1 inset-x-1 bg-[#1A1A1A]/90 text-[#FFE066] text-[10px] sm:text-xs font-bold text-center py-0.5 px-1.5 rounded border border-[#FFE066] z-20 truncate";
+                dancePoseCounter++;
+
+                // Advance Song Note
+                stepIndex++;
+                if (stepIndex >= HAPPY_BIRTHDAY_SONG.length) {
+                    stepIndex = 0;
+                    songsCompleted++;
+                    score += 100; // Full song completion bonus
+                    showToast(`🎉 完成第 ${songsCompleted} 首生日歌！獎勵 +100 分！`);
+                }
+
+                updateHUD();
+                updateTargetKeyUI();
+            } else {
+                // WRONG NOTE -> Show Disappointed Abigail!
+                combo = 0;
+                score = Math.max(0, score - 5);
+                playPianoNote(pressedNote, false);
+
+                keyEl.classList.add('wrong-flash');
+                setTimeout(() => keyEl.classList.remove('wrong-flash'), 250);
+
+                liveAvatar.innerHTML = getAbigailSVG('miss');
+                liveAvatar.classList.remove('abigail-dance');
+                void liveAvatar.offsetWidth; // Reflow to restart shake animation
+                liveAvatar.classList.add('abigail-miss');
+
+                poseLabel.textContent = "💦 哎呀按錯音了！Abigail 有點失落～";
+                poseLabel.className = "absolute bottom-1 inset-x-1 bg-[#D73A31] text-white text-[10px] sm:text-xs font-bold text-center py-0.5 px-1.5 rounded border border-black z-20 truncate";
+
+                updateHUD();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-score').textContent = score;
+            document.getElementById('hud-combo').textContent = combo;
+            document.getElementById('hud-songs-completed').textContent = songsCompleted;
+        }
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        /*************************************************************
+         * 5. START & END 3-MINUTE GAME FLOW
+         *************************************************************/
+        async function startGameSession() {
+            const nameInput = document.getElementById('player-name-input').value.trim();
+            if (!nameInput) {
+                document.getElementById('name-error-msg').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('name-error-msg').classList.add('hidden');
+            playerName = nameInput;
+
+            await initAudio();
+
+            // Reset game variables
+            score = 0;
+            combo = 0;
+            stepIndex = 0;
+            songsCompleted = 0;
+            dancePoseCounter = 0;
+            totalPresses = 0;
+            correctPresses = 0;
+            timeLeft = 180; // 3 minutes
+            isGameActive = true;
+
+            // Update UI
+            document.getElementById('hud-player-name').textContent = playerName;
+            document.getElementById('hud-timer').textContent = formatTime(timeLeft);
+            document.getElementById('abigail-live-avatar').innerHTML = getAbigailSVG('dance1');
+            updateHUD();
+            updateTargetKeyUI();
+
+            // Switch Screens
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('flex');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+
+            // Start 3-minute countdown
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('hud-timer').textContent = formatTime(timeLeft);
+                if (timeLeft <= 10) {
+                    document.getElementById('hud-timer').classList.add('text-[#FF5252]');
+                } else {
+                    document.getElementById('hud-timer').classList.remove('text-[#FF5252]');
+                }
+
+                if (timeLeft <= 0) {
+                    endGameSession();
+                }
+            }, 1000);
+        }
+
+        async function endGameSession() {
+            isGameActive = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const accuracy = totalPresses > 0 ? Math.round((correctPresses / totalPresses) * 100) : 0;
+
+            // Switch to End Screen
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('end-screen').classList.add('flex');
+
+            // Populate Final Summary
+            document.getElementById('final-player-name').textContent = playerName;
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+
+            // Save to Cloud Leaderboard & Google Sheet
+            const updatedPlayCount = await recordPlayerScore(playerName, score, accuracy, songsCompleted);
+            document.getElementById('final-play-count').textContent = `${updatedPlayCount} 次`;
+        }
+
+        /*************************************************************
+         * 6. CLOUD STORAGE (FIRESTORE) & GOOGLE SHEET RECORDING
+         *************************************************************/
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let leaderboardRecords = [];
+        let googleSheetWebhookUrl = ""; // Optional Apps Script Web App URL
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'abigail-birthday-game';
+
+        async function initFirebase() {
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        currentUser = user;
+                        if (user) {
+                            subscribeToLeaderboard();
+                        }
+                    });
+                } else {
+                    renderLeaderboardTable();
+                }
+            } catch (e) {
+                console.warn("Cloud leaderboard fallback mode:", e);
+                renderLeaderboardTable();
+            }
+        }
+
+        function subscribeToLeaderboard() {
+            if (!currentUser || !db) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'abigail_leaderboard');
+            onSnapshot(colRef, (snapshot) => {
+                const items = [];
+                snapshot.forEach((docSnap) => {
+                    items.push(docSnap.data());
+                });
+                leaderboardRecords = items;
+                renderLeaderboardTable();
+            }, (error) => {
+                console.warn("Leaderboard snapshot error:", error);
+            });
+        }
+
+        async function recordPlayerScore(name, newScore, accuracy, completedCount) {
+            const cleanKey = name.trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '_') || 'player';
+            const existing = leaderboardRecords.find(r => r.playerKey === cleanKey);
+
+            const playCount = existing ? (Number(existing.playCount || 0) + 1) : 1;
+            const bestScore = existing ? Math.max(Number(existing.bestScore || 0), newScore) : newScore;
+            const bestSongs = existing ? Math.max(Number(existing.songsCompleted || 0), completedCount) : completedCount;
+
+            const recordData = {
+                playerKey: cleanKey,
+                playerName: name.trim(),
+                bestScore: bestScore,
+                lastScore: newScore,
+                playCount: playCount,
+                accuracy: accuracy,
+                songsCompleted: bestSongs,
+                updatedAt: new Date().toISOString()
+            };
+
+            // Update in-memory list immediately
+            const idx = leaderboardRecords.findIndex(r => r.playerKey === cleanKey);
+            if (idx >= 0) {
+                leaderboardRecords[idx] = recordData;
+            } else {
+                leaderboardRecords.push(recordData);
+            }
+            renderLeaderboardTable();
+
+            // 1. Save to Firestore Cloud Database
+            if (currentUser && db) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'abigail_leaderboard', cleanKey);
+                    await setDoc(docRef, recordData);
+                } catch (err) {
+                    console.warn("Firestore save error:", err);
+                }
+            }
+
+            // 2. Send to Google Sheet if Webhook URL is configured
+            if (googleSheetWebhookUrl) {
+                sendToGoogleSheetWebhook(recordData);
+            }
+
+            return playCount;
+        }
+
+        async function sendToGoogleSheetWebhook(recordData) {
+            try {
+                const statusEl = document.getElementById('sheet-sync-status');
+                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 正在同步寫入 Google Sheet...`;
+                await fetch(googleSheetWebhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(recordData)
+                });
+                statusEl.innerHTML = `<i class="fa-solid fa-check-double"></i> 已成功同步傳送至 Google Sheet 及雲端排行榜！`;
+                showToast("✅ 分數與排名次數已傳送至 Google Sheet！");
+            } catch (e) {
+                console.warn("Google Sheet webhook error:", e);
+            }
+        }
+
+        function renderLeaderboardTable() {
+            const tbody = document.getElementById('leaderboard-tbody');
+            if (!leaderboardRecords || leaderboardRecords.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-gray-500">
+                            目前尚無紀錄，快來成為第一位替 Abigail 彈生日歌的嘉賓吧！
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            // Sort in memory by bestScore descending, then playCount descending
+            const sorted = [...leaderboardRecords].sort((a, b) => {
+                if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+                return (b.playCount || 1) - (a.playCount || 1);
+            });
+
+            tbody.innerHTML = sorted.map((item, index) => {
+                const rank = index + 1;
+                let rankBadge = `<span class="inline-block w-6 h-6 rounded-full bg-gray-200 text-center leading-6 font-black">${rank}</span>`;
+                if (rank === 1) rankBadge = `<span class="inline-block w-6 h-6 rounded-full bg-[#FFE066] border border-black text-center leading-6 font-black">👑</span>`;
+                else if (rank === 2) rankBadge = `<span class="inline-block w-6 h-6 rounded-full bg-gray-300 border border-black text-center leading-6 font-black">🥈</span>`;
+                else if (rank === 3) rankBadge = `<span class="inline-block w-6 h-6 rounded-full bg-[#F4A261] border border-black text-center leading-6 font-black">🥉</span>`;
+
+                const isCurrentPlayer = playerName && item.playerName.toLowerCase() === playerName.toLowerCase();
+                const rowClass = isCurrentPlayer ? "bg-[#FFF3B0]/70" : "hover:bg-gray-50";
+
+                return `
+                    <tr class="${rowClass}">
+                        <td class="py-2 px-2.5">${rankBadge}</td>
+                        <td class="py-2 px-2.5 font-black text-[#1A1A1A]">
+                            ${escapeHtml(item.playerName)}
+                            ${isCurrentPlayer ? '<span class="ml-1 text-[10px] bg-[#D73A31] text-white px-1.5 py-0.5 rounded">你</span>' : ''}
+                        </td>
+                        <td class="py-2 px-2.5 text-right font-black text-[#D73A31]">${item.bestScore} 分</td>
+                        <td class="py-2 px-2.5 text-center">
+                            <span class="bg-[#2A4B3C]/10 text-[#2A4B3C] border border-[#2A4B3C] px-2 py-0.5 rounded-full text-xs font-black">
+                                ${item.playCount || 1} 次
+                            </span>
+                        </td>
+                        <td class="py-2 px-2.5 text-right hidden sm:table-cell text-gray-600">${item.songsCompleted || 0} 首</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Export Google Sheets Compatible CSV (with UTF-8 BOM for Traditional Chinese support)
+        function exportToGoogleSheetCSV() {
+            const sorted = [...leaderboardRecords].sort((a, b) => b.bestScore - a.bestScore);
+            const headers = ["排名(Rank)", "玩家名字(Player Name)", "最高分數(Best Score)", "最近分數(Last Score)", "遊玩次數(Play Count)", "準確率(Accuracy %)", "完成生日歌數(Songs Completed)", "紀錄時間(Timestamp)"];
+            const rows = sorted.map((r, i) => [
+                i + 1,
+                `"${(r.playerName || '').replace(/"/g, '""')}"`,
+                r.bestScore || 0,
+                r.lastScore || 0,
+                r.playCount || 1,
+                `${r.accuracy || 0}%`,
+                r.songsCompleted || 0,
+                r.updatedAt || new Date().toISOString()
+            ]);
+
+            const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Abigail_4th_Birthday_Leaderboard_GoogleSheet.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("📊 已下載 Google Sheet 試算表檔案 (.csv)！");
+        }
+
+        function copyAppsScriptTemplate() {
+            const scriptCode = `function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([new Date(), data.playerName, data.bestScore, data.lastScore, data.playCount, data.accuracy + "%", data.songsCompleted]);
+  return ContentService.createTextOutput("OK");
+}`;
+            const tempInput = document.createElement("textarea");
+            tempInput.value = scriptCode;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            showToast("📋 已複製 Google Apps Script 程式碼！貼至 Google 試算表「擴充功能 > Apps Script」部署即可自動寫入！");
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, s => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[s]));
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3200);
+        }
+
+        /*************************************************************
+         * 7. UI EVENT LISTENERS
+         *************************************************************/
+        document.getElementById('start-mission-btn').addEventListener('click', startGameSession);
+        document.getElementById('player-name-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') startGameSession();
+        });
+
+        document.getElementById('finish-early-btn').addEventListener('click', () => {
+            if (isGameActive) endGameSession();
+        });
+
+        document.getElementById('play-again-btn').addEventListener('click', () => {
+            startGameSession();
+        });
+
+        document.getElementById('new-player-btn').addEventListener('click', () => {
+            document.getElementById('player-name-input').value = '';
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('flex');
+            document.getElementById('start-screen').classList.remove('hidden');
+        });
+
+        document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('end-screen').classList.add('flex');
+            document.getElementById('final-player-name').textContent = playerName || '訪客';
+        });
+
+        document.getElementById('export-csv-btn').addEventListener('click', exportToGoogleSheetCSV);
+
+        document.getElementById('config-sheet-btn').addEventListener('click', () => {
+            document.getElementById('sheet-webhook-panel').classList.toggle('hidden');
+        });
+
+        document.getElementById('close-webhook-btn').addEventListener('click', () => {
+            document.getElementById('sheet-webhook-panel').classList.add('hidden');
+        });
+
+        document.getElementById('save-webhook-btn').addEventListener('click', () => {
+            const urlVal = document.getElementById('sheet-webhook-input').value.trim();
+            if (urlVal) {
+                googleSheetWebhookUrl = urlVal;
+                showToast("🔗 已綁定 Google Sheet Webhook！現在立即同步最新資料...");
+                if (leaderboardRecords.length > 0) {
+                    sendToGoogleSheetWebhook(leaderboardRecords[leaderboardRecords.length - 1]);
+                }
+            }
+        });
+
+        document.getElementById('copy-gas-code-btn').addEventListener('click', copyAppsScriptTemplate);
+
+        // Initialize Firebase Cloud Leaderboard on Load
+        window.onload = () => {
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
